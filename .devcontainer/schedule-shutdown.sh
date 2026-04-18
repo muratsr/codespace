@@ -17,20 +17,14 @@ if [[ -f "$PID_FILE" ]]; then
         log "timer already active with pid $existing_pid"
         exit 0
     fi
+
+    rm -f "$PID_FILE"
+    log "removed stale pid file"
 fi
 
-(
-    trap 'rm -f "$PID_FILE"' EXIT
-
-    log "timer started for ${MINUTES} minutes"
-    sleep "$DELAY_SECONDS"
-
-    if python3 "$SCRIPT_DIR/stop_codespace.py"; then
-        log "stop request sent"
-    else
-        log "stop request failed"
-    fi
-) >/tmp/codespace-auto-shutdown.log 2>&1 &
+nohup setsid bash "$SCRIPT_DIR/shutdown-worker.sh" \
+    "$SCRIPT_DIR" "$REPO_ROOT" "$PID_FILE" "$MINUTES" "$DELAY_SECONDS" \
+    </dev/null >/tmp/codespace-auto-shutdown.log 2>&1 &
 
 shutdown_pid=$!
 echo "$shutdown_pid" > "$PID_FILE"
