@@ -7,4 +7,5 @@ message_lines = [
 	datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 ]
 
-Path("runner.txt").write_text("\n".join(message_lines) + "\n", encoding="utf-8")
+with Path("runner.txt").open("a", encoding="utf-8") as output_file:
+	output_file.write("\n".join(message_lines) + "\n")
