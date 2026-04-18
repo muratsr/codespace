@@ -11,13 +11,27 @@ log() {
     echo "shutdown scheduler $(date '+%Y-%m-%d %H:%M:%S') $1" >> "$REPO_ROOT/date.txt"
 }
 
-trap 'rm -f "$PID_FILE"' EXIT
+cleanup() {
+    exit_code="$1"
+    log "worker exiting pid=$$ exit_code=$exit_code"
+    rm -f "$PID_FILE"
+}
 
-log "timer started for ${MINUTES} minutes"
+trap 'cleanup "$?"' EXIT
+
+log "timer started for ${MINUTES} minutes pid=$$ ppid=$PPID"
 sleep "$DELAY_SECONDS"
+log "sleep complete after ${DELAY_SECONDS} seconds"
 
-if python3 "$SCRIPT_DIR/stop_codespace.py"; then
+stop_output="$(python3 "$SCRIPT_DIR/stop_codespace.py" 2>&1)"
+stop_status=$?
+
+while IFS= read -r line; do
+    [[ -n "$line" ]] && log "stop_codespace.py $line"
+done <<< "$stop_output"
+
+if [[ $stop_status -eq 0 ]]; then
     log "stop request sent"
 else
-    log "stop request failed"
+    log "stop request failed exit_code=$stop_status"
 fi

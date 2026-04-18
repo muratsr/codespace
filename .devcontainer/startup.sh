@@ -1,9 +1,12 @@
 #!/bin/bash
+set -euo pipefail
+
 # Resolve the repository root (works in Codespaces and locally)
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Append current date and time to date.txt
 echo "startup.sh called $(date '+%Y-%m-%d %H:%M:%S')" >> "$REPO_ROOT/date.txt"
+echo "startup.sh env CODESPACE_NAME=${CODESPACE_NAME:-missing} GITHUB_TOKEN=$([[ -n "${GITHUB_TOKEN:-}" ]] && echo present || echo missing) GITHUB_CODESPACES_TOKEN=$([[ -n "${GITHUB_CODESPACES_TOKEN:-}" ]] && echo present || echo missing)" >> "$REPO_ROOT/date.txt"
 
 # Schedule an automatic Codespace shutdown 10 minutes after startup.
 bash "$REPO_ROOT/.devcontainer/schedule-shutdown.sh" 2

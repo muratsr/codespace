@@ -4,10 +4,21 @@ import urllib.error
 import urllib.request
 
 
+def log(message: str) -> None:
+    print(message, flush=True)
+
+
 def main() -> int:
     codespace_name = os.environ.get("CODESPACE_NAME")
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GITHUB_CODESPACES_TOKEN")
     api_url = os.environ.get("GITHUB_API_URL", "https://api.github.com")
+
+    log(
+        "Starting stop request "
+        f"codespace={codespace_name or 'missing'} "
+        f"api_url={api_url} "
+        f"token_source={'GITHUB_TOKEN' if os.environ.get('GITHUB_TOKEN') else 'GITHUB_CODESPACES_TOKEN' if os.environ.get('GITHUB_CODESPACES_TOKEN') else 'missing'}"
+    )
 
     if not codespace_name:
         print("CODESPACE_NAME is not set", file=sys.stderr)
@@ -27,9 +38,14 @@ def main() -> int:
         },
     )
 
+    log(f"POST {request.full_url}")
+
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
-            print(f"Codespace stop requested: HTTP {response.status}")
+            response_body = response.read().decode("utf-8", errors="replace")
+            log(f"Codespace stop requested: HTTP {response.status}")
+            if response_body:
+                log(f"Response body: {response_body}")
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         print(f"GitHub API returned HTTP {exc.code}: {body}", file=sys.stderr)
