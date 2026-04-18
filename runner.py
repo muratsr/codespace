@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 message_lines = [
-	"runner output Hello World",
+	"runner output Hello World changed",
 	datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 ]
 
